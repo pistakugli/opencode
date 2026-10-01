@@ -5,7 +5,7 @@ import { Agent } from "./agent"
 import { Location } from "./location"
 import { Model } from "./model"
 import { Project } from "./project"
-import { DateTimeUtcFromMillis, optional, RelativePath } from "./schema"
+import { DateTimeUtcFromMillis, NonNegativeInt, optional, RelativePath } from "./schema"
 import { SessionEvent } from "./session-event"
 import { SessionID } from "./session-id"
 import { Revert } from "./revert"
@@ -14,6 +14,19 @@ export const ID = SessionID
 export type ID = SessionID
 
 export const Event = SessionEvent
+
+export const GoalStatus = Schema.Literals(["active", "paused", "completed"])
+export interface Goal extends Schema.Schema.Type<typeof Goal> {}
+export const Goal = Schema.Struct({
+  text: Schema.String,
+  status: GoalStatus,
+  time: Schema.Struct({
+    created: NonNegativeInt,
+    updated: NonNegativeInt,
+    paused: optional(NonNegativeInt),
+    completed: optional(NonNegativeInt),
+  }),
+}).annotate({ identifier: "Session.Goal" })
 
 export interface Info extends Schema.Schema.Type<typeof Info> {}
 export const Info = Schema.Struct({
@@ -38,6 +51,7 @@ export const Info = Schema.Struct({
     archived: DateTimeUtcFromMillis.pipe(optional),
   }),
   title: Schema.String,
+  goal: Goal.pipe(optional),
   location: Location.Ref,
   subpath: RelativePath.pipe(optional),
   revert: Revert.State.pipe(optional),

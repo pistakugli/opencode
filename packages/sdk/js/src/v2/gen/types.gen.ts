@@ -195,6 +195,7 @@ export type Session = {
     url: string
   }
   title: string
+  goal?: SessionGoal
   agent?: string
   model?: {
     id: string
@@ -2223,6 +2224,7 @@ export type GlobalSession = {
     url: string
   }
   title: string
+  goal?: SessionGoal
   agent?: string
   model?: {
     id: string
@@ -3036,6 +3038,17 @@ export type SkillV2Source = SkillV2DirectorySource | SkillV2UrlSource | SkillV2E
 
 export type MoveSessionDestination = {
   directory: string
+}
+
+export type SessionGoal = {
+  text: string
+  status: "active" | "paused" | "completed"
+  time: {
+    created: number
+    updated: number
+    paused?: number
+    completed?: number
+  }
 }
 
 export type ModelRef = {
@@ -3857,6 +3870,11 @@ export type PtyTicketConnectToken = {
   expires_in: number
 }
 
+export type SessionGoalUpdate = {
+  action: "set" | "pause" | "resume" | "complete" | "clear"
+  text?: string
+}
+
 export type WorkspaceEventConnectionStatus = {
   workspaceID: string
   status: "connected" | "connecting" | "disconnected" | "error"
@@ -3927,6 +3945,7 @@ export type SessionV2Info = {
     archived?: number
   }
   title: string
+  goal?: SessionGoal
   location: LocationRef
   subpath?: string
   revert?: RevertState
@@ -9620,6 +9639,7 @@ export type SessionUpdateData = {
       [key: string]: unknown
     }
     permission?: PermissionRuleset
+    goal?: SessionGoalUpdate
     time?: {
       archived?: number
     }

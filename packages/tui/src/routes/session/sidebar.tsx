@@ -22,6 +22,12 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     return project.workspace.get(workspaceID)
   }
   const scrollAcceleration = createMemo(() => getScrollAcceleration(tuiConfig))
+  const goalColor = createMemo(() => {
+    const status = session()?.goal?.status
+    if (status === "active") return theme.success
+    if (status === "paused") return theme.warning
+    return theme.textMuted
+  })
 
   return (
     <Show when={session()}>
@@ -79,6 +85,15 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                 </Show>
                 <Show when={session()!.share?.url}>
                   <text fg={theme.textMuted}>{session()!.share!.url}</text>
+                </Show>
+                <Show when={session()!.goal}>
+                  <box paddingRight={1}>
+                    <text fg={theme.textMuted}>
+                      <span style={{ fg: goalColor() }}>Goal</span>{" "}
+                      <span style={{ fg: theme.textMuted }}>{session()!.goal!.status}</span>
+                    </text>
+                    <text fg={theme.text}>{session()!.goal!.text}</text>
+                  </box>
                 </Show>
               </box>
             </pluginRuntime.Slot>

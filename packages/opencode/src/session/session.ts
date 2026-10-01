@@ -44,6 +44,8 @@ import { RuntimeFlags } from "@/effect/runtime-flags"
 import { ProviderV2 } from "@opencode-ai/core/provider"
 import { ModelV2 } from "@opencode-ai/core/model"
 import { SessionMessage } from "@opencode-ai/schema/session-message"
+import { Session } from "@opencode-ai/schema/session"
+import { SessionGoal } from "./goal"
 
 const parentTitlePrefix = "New session - "
 const childTitlePrefix = "Child session - "
@@ -84,6 +86,7 @@ export function fromRow(row: SessionRow): Info {
     path: row.path ?? undefined,
     parentID: row.parent_id ?? undefined,
     title: row.title,
+    goal: row.goal ?? undefined,
     agent: row.agent ?? undefined,
     model: row.model
       ? {
@@ -127,6 +130,7 @@ export function toRow(info: Info) {
     directory: info.directory,
     path: info.path,
     title: info.title,
+    goal: info.goal ?? null,
     agent: info.agent,
     model: info.model,
     version: info.version,
@@ -234,6 +238,7 @@ export const Info = Schema.Struct({
   tokens: optional(Tokens),
   share: optional(Share),
   title: Schema.String,
+  goal: optional(Session.Goal),
   agent: optional(Schema.String),
   model: optional(Model),
   version: Schema.String,
@@ -426,6 +431,9 @@ export interface Interface {
   readonly touch: (sessionID: SessionID) => Effect.Effect<void>
   readonly get: (id: SessionID) => Effect.Effect<Info, NotFound>
   readonly setTitle: (input: { sessionID: SessionID; title: string }) => Effect.Effect<void>
+  readonly setGoal: (
+    input: { sessionID: SessionID; goal: SessionGoal.Update },
+  ) => Effect.Effect<Info["goal"], NotFound | SessionGoal.GoalError>
   readonly setArchived: (input: { sessionID: SessionID; time?: number }) => Effect.Effect<void>
   readonly setMetadata: (input: typeof SetMetadataInput.Type) => Effect.Effect<void>
   readonly setAgentModel: (input: {
@@ -475,12 +483,16 @@ export class Service extends Context.Service<Service, Interface>()("@opencode/Se
 
 export const use = serviceUse(Service)
 
-export type Patch = Omit<Partial<Info>, "time" | "share" | "summary" | "revert" | "permission"> & {
+export type Patch = Omit<
+  Partial<Info>,
+  "time" | "share" | "summary" | "revert" | "permission" | "goal"
+> & {
   time?: Partial<Info["time"]>
   share?: Partial<NonNullable<Info["share"]>> | null
   summary?: Info["summary"] | null
   revert?: Info["revert"] | null
   permission?: Info["permission"] | null
+  goal?: Info["goal"] | null
 }
 
 const layer: Layer.Layer<
@@ -742,6 +754,7 @@ const layer: Layer.Layer<
           summary: info.summary === null ? undefined : (info.summary ?? current.summary),
           revert: info.revert === null ? undefined : (info.revert ?? current.revert),
           permission: info.permission === null ? undefined : (info.permission ?? current.permission),
+          goal: info.goal === null ? undefined : (info.goal ?? current.goal),
         } as Info
         yield* events.publish(SessionV1.Event.Updated, { sessionID, info: next })
       })
@@ -752,6 +765,17 @@ const layer: Layer.Layer<
 
     const setTitle = Effect.fn("Session.setTitle")(function* (input: { sessionID: SessionID; title: string }) {
       yield* patch(input.sessionID, { title: input.title }).pipe(Effect.orDie)
+    })
+
+    const setGoal = Effect.fn("Session.setGoal")(function* (input: {
+      sessionID: SessionID
+      goal: SessionGoal.Update
+    }) {
+      const current = yield* get(input.sessionID)
+      const result = SessionGoal.apply(current.goal, input.goal, Date.now())
+      if (!result.ok) return yield* new SessionGoal.GoalError({ reason: result.reason })
+      yield* patch(input.sessionID, { goal: result.goal ?? null, time: { updated: Date.now() } }).pipe(Effect.orDie)
+      return result.goal
     })
 
     const setArchived = Effect.fn("Session.setArchived")(function* (input: { sessionID: SessionID; time?: number }) {
@@ -911,6 +935,7 @@ const layer: Layer.Layer<
       touch,
       get,
       setTitle,
+      setGoal,
       setArchived,
       setMetadata,
       setAgentModel,

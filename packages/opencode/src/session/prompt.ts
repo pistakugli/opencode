@@ -7,6 +7,7 @@ import { SessionID, MessageID, PartID } from "./schema"
 import { MessageV2 } from "./message-v2"
 import { SessionRevert } from "./revert"
 import { Session } from "./session"
+import { SessionGoal } from "./goal"
 import { Agent } from "../agent/agent"
 import { Provider } from "@/provider/provider"
 
@@ -1263,6 +1264,7 @@ const layer = Layer.effect(
             ])
             const system = [
               ...env,
+              ...(session.goal ? [SessionGoal.render(session.goal)] : []),
               ...instructions,
               ...(mcpInstructions ? [mcpInstructions] : []),
               ...(skills ? [skills] : []),

@@ -193,6 +193,7 @@ import type {
   SessionForkResponses,
   SessionGetErrors,
   SessionGetResponses,
+  SessionGoalUpdate,
   SessionInitErrors,
   SessionInitResponses,
   SessionListErrors,
@@ -3566,6 +3567,7 @@ export class Session2 extends HeyApiClient {
         [key: string]: unknown
       }
       permission?: PermissionRuleset
+      goal?: SessionGoalUpdate
       time?: {
         archived?: number
       }
@@ -3583,6 +3585,7 @@ export class Session2 extends HeyApiClient {
             { in: "body", key: "title" },
             { in: "body", key: "metadata" },
             { in: "body", key: "permission" },
+            { in: "body", key: "goal" },
             { in: "body", key: "time" },
           ],
         },

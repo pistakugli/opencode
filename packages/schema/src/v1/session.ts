@@ -8,6 +8,7 @@ import { Provider } from "../provider"
 import { Model } from "../model"
 import { NonNegativeInt, optional, statics } from "../schema"
 import { ascending } from "../identifier"
+import { Session } from "../session"
 import { SessionID } from "../session-id"
 import { WorkspaceID } from "../workspace-id"
 import { PermissionV1 } from "./permission"
@@ -553,6 +554,7 @@ export const SessionInfo = Schema.Struct({
   tokens: optional(SessionTokens),
   share: optional(SessionShare),
   title: Schema.String,
+  goal: optional(Session.Goal),
   agent: optional(Schema.String),
   model: optional(SessionModel),
   version: Schema.String,

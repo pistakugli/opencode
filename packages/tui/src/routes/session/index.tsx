@@ -52,6 +52,7 @@ import { DialogConfirm } from "../../ui/dialog-confirm"
 import { DialogTimeline } from "./dialog-timeline"
 import { DialogForkFromTimeline } from "./dialog-fork-from-timeline"
 import { DialogSessionRename } from "../../component/dialog-session-rename"
+import { DialogSessionGoal } from "../../component/dialog-session-goal"
 import { Sidebar } from "./sidebar"
 import { SubagentFooter } from "./subagent-footer.tsx"
 import { filetype } from "../../util/filetype"
@@ -512,6 +513,17 @@ export function Session() {
       },
       run: () => {
         dialog.replace(() => <DialogSessionRename session={route.sessionID} />)
+      },
+    },
+    {
+      title: session()?.goal ? "Update session goal" : "Set session goal",
+      value: "session.goal",
+      category: "Session",
+      slash: {
+        name: "goal",
+      },
+      run: () => {
+        dialog.replace(() => <DialogSessionGoal session={route.sessionID} />)
       },
     },
     {

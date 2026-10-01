@@ -188,6 +188,9 @@ export const sessionHandlers = HttpApiBuilder.group(InstanceHttpApi, "session", 
       if (ctx.payload.title !== undefined) {
         yield* session.setTitle({ sessionID: ctx.params.sessionID, title: ctx.payload.title })
       }
+      if (ctx.payload.goal !== undefined) {
+        yield* SessionError.mapGoalError(session.setGoal({ sessionID: ctx.params.sessionID, goal: ctx.payload.goal }))
+      }
       if (ctx.payload.metadata !== undefined) {
         yield* session.setMetadata({ sessionID: ctx.params.sessionID, metadata: ctx.payload.metadata })
       }
